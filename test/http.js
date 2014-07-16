@@ -418,5 +418,39 @@ describe('http.js', function() {
         });
       });
     });
+    describe('https proxy agent', function() {
+      it('should work as expected', function(done) {
+
+        var reqOptions = {
+          protocol: 'http:',
+          host: 'foobar',
+          port: 80,
+          path: '/x',
+          method: 'GET',
+          agent: new http2.Agent({
+            host: 'localhost',
+            port: 1238
+          })
+        };
+
+        var message = 'Hello world';
+
+        var server = http2.createServer(options, function(request, response) {
+          expect(request.headers.host).to.equal(reqOptions.host);
+          expect(request.url).to.equal(reqOptions.path);
+          expect(request.method).to.equal(reqOptions.method);
+          response.end(message);
+        });
+
+        server.listen(1238, function() {
+          http2.get(reqOptions, function(response) {
+            response.on('data', function(data) {
+              expect(data.toString()).to.equal(message);
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 });
